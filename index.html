@@ -901,5 +901,20 @@ function calculate() {
   setTimeout(function(){ res.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
 }
 </script>
+
+<script>
+  function reportHeight() {
+    var h = document.documentElement.scrollHeight;
+    window.parent.postMessage({ type: 'iframeResize', height: h }, '*');
+  }
+  // Report on load
+  window.addEventListener('load', reportHeight);
+  // Report whenever DOM changes (e.g. results appear, buckets expand)
+  var observer = new MutationObserver(reportHeight);
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+  // Also report on any click (catches expand/collapse toggles)
+  document.addEventListener('click', function(){ setTimeout(reportHeight, 50); });
+</script>
+
 </body>
 </html>
