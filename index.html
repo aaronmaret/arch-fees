@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Project Budget Calculator — Aaron Maret Architect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white:   #FFFFFF;
+    --sand:    #E8E4DC;
+    --yellow:  #E8C832;
+    --green:   #3A6B2A;
+    --dark:    #2A2A1E;
+    --mid:     #5A5A48;
+    --light:   #F4F2EE;
+    --border:  rgba(42,42,30,0.12);
+    --border-strong: rgba(42,42,30,0.25);
+    --teal:    #1D9E75;
+    --teal-lt: #E1F5EE;
+    --teal-dk: #085041;
+    --amber:   #FAC775;
+    --coral:   #F0997B;
+    --purple:  #AFA9EC;
+    --blue:    #85B7EB;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: transparent;
+    color: var(--dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ── */
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  /* ── Intro ── */
+  .intro {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .intro-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: .75rem;
+  }
+  .intro h1 {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--dark);
+    margin-bottom: .75rem;
+    line-height: 1.25;
+  }
+  .intro p {
+    font-size: 15px;
+    color: var(--mid);
+    line-height: 1.65;
+    max-width: 560px;
+  }
+
+  /* ── Step sections ── */
+  .step { margin-bottom: 2.5rem; }
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: .4rem;
+  }
+  .step-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--dark);
+    margin-bottom: .3rem;
+  }
+  .step-hint {
+    font-size: 14px;
+    color: var(--mid);
+    margin-bottom: 1.25rem;
+    line-height: 1.55;
+  }
+  .divider {
+    border: none;
+    border-top: 0.5px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  /* ── Option cards (project type) ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .opt-card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 15px;
+    cursor: pointer;
+    background: var(--white);
+    transition: border-color .15s;
+    user-select: none;
+  }
+  .opt-card:hover { border-color: var(--border-strong); }
+  .opt-card.sel {
+    border: 2px solid var(--green);
+    background: #EEF5EA;
+  }
+  .opt-card .oc-icon { font-size: 18px; margin-bottom: 6px; line-height: 1; }
+  .opt-card .oc-label { font-size: 13px; font-weight: 600; color: var(--dark); }
+  .opt-card .oc-sub { font-size: 12px; color: var(--mid); margin-top: 3px; line-height: 1.35; }
+  .opt-card.sel .oc-label { color: var(--green); }
+  .opt-card.sel .oc-sub { color: #4A7A38; }
+
+  /* ── Budget inputs ── */
+  .input-row { display: flex; align-items: center; gap: 8px; margin-bottom: .4rem; }
+  .input-pre { font-size: 22px; font-weight: 500; color: var(--mid); }
+  .budget-input {
+    font-family: 'Manrope', sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    border: none;
+    border-bottom: 1.5px solid var(--border-strong);
+    border-radius: 0;
+    padding: 4px 0;
+    background: transparent;
+    color: var(--dark);
+    width: 210px;
+    outline: none;
+  }
+  .budget-input:focus { border-bottom-color: var(--green); }
+  .budget-input.sm { font-size: 16px; width: 100%; }
+  .input-hint { font-size: 12px; color: var(--mid); margin-bottom: 1.5rem; }
+
+  /* ── Land block ── */
+  .land-block {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-top: 1.25rem;
+    background: var(--light);
+    display: none;
+  }
+  .land-q { font-size: 14px; font-weight: 500; color: var(--dark); margin-bottom: 10px; }
+  .land-opts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .land-opt {
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    cursor: pointer;
+    color: var(--mid);
+    background: var(--white);
+    transition: border-color .15s;
+  }
+  .land-opt:hover { border-color: var(--border-strong); }
+  .land-opt.sel { border: 2px solid var(--green); background: #EEF5EA; color: var(--green); font-weight: 600; }
+  .land-sub { margin-top: 14px; display: none; }
+  .land-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--mid);
+    line-height: 1.55;
+    font-style: italic;
+    display: none;
+  }
+  .land-sub-label { font-size: 12px; font-weight: 600; color: var(--mid); margin-bottom: 6px; }
+
+  /* ── Quality list ── */
+  .quality-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 1.5rem; }
+  .qi {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    cursor: pointer;
+    background: var(--white);
+    transition: border-color .15s;
+    user-select: none;
+  }
+  .qi:hover { border-color: var(--border-strong); }
+  .qi.sel { border: 2px solid var(--green); background: #EEF5EA; }
+  .qi-dot {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    border: 0.5px solid var(--border-strong);
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+  .qi.sel .qi-dot { background: var(--green); border-color: var(--green); }
+  .qi-label { font-size: 14px; font-weight: 500; color: var(--dark); }
+  .qi-desc { font-size: 12px; color: var(--mid); margin-top: 2px; line-height: 1.4; }
+  .qi.sel .qi-label { color: var(--green); }
+  .qi.sel .qi-desc { color: #4A7A38; }
+
+  /* ── Tier cards ── */
+  .tier-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+  .tc {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    cursor: pointer;
+    background: var(--white);
+    transition: border-color .15s;
+    user-select: none;
+  }
+  .tc:hover { border-color: var(--border-strong); }
+  .tc.sel { border: 2px solid var(--green); background: #EEF5EA; }
+  .tc-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  .tc-name { font-size: 14px; font-weight: 600; color: var(--dark); }
+  .tc-badge {
+    font-size: 11px; padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--sand);
+    color: var(--mid);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .tc.sel .tc-name { color: var(--green); }
+  .tc.sel .tc-badge { background: #C5E0BB; color: var(--green); }
+  .tc-desc { font-size: 13px; color: var(--mid); line-height: 1.5; margin-bottom: 8px; }
+  .tc.sel .tc-desc { color: #4A7A38; }
+  .tc-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tc-pill {
+    font-size: 11px; padding: 3px 9px;
+    border-radius: 999px;
+    border: 0.5px solid var(--border);
+    color: var(--mid);
+    background: var(--light);
+  }
+  .tc.sel .tc-pill { border-color: #7BBF68; color: var(--green); background: #EEF5EA; }
+
+  /* ── Known costs grid ── */
+  .known-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .known-item {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 13px 15px;
+    background: var(--white);
+  }
+  .known-label { font-size: 12px; font-weight: 600; color: var(--mid); margin-bottom: 7px; }
+
+  /* ── Submit button ── */
+  .go-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: var(--radius-lg);
+    background: var(--dark);
+    color: var(--white);
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    letter-spacing: .02em;
+    transition: background .15s;
+    margin-bottom: 2rem;
+  }
+  .go-btn:hover { background: var(--green); }
+
+  /* ── Results ── */
+  #results { display: none; }
+
+  .res-card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .res-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 1rem;
+  }
+
+  /* Bar */
+  .bar-stack {
+    display: flex;
+    height: 26px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: .65rem;
+  }
+  .bar-seg { height: 100%; }
+  .bar-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 1.5rem; }
+  .bl-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mid); }
+  .bl-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* Buckets */
+  .bucket { border-bottom: 0.5px solid var(--border); }
+  .bucket:last-of-type { border-bottom: none; }
+  .bucket-hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    cursor: pointer;
+    gap: 12px;
+  }
+  .bucket-hdr:hover .b-name { color: var(--dark); }
+  .b-name { font-size: 13px; font-weight: 500; color: var(--mid); transition: color .15s; }
+  .b-name.hl { color: var(--green); font-weight: 600; }
+  .b-right { display: flex; align-items: baseline; gap: 6px; }
+  .b-total { font-size: 13px; font-weight: 600; color: var(--dark); }
+  .b-pct { font-size: 11px; color: var(--mid); }
+  .b-chev { font-size: 11px; color: var(--mid); margin-left: 4px; transition: transform .2s; display: inline-block; }
+  .b-chev.open { transform: rotate(90deg); }
+
+  .sub-rows { display: none; padding-bottom: 8px; }
+  .sub-rows.open { display: block; }
+  .sub-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0 4px 16px;
+    font-size: 12px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .sub-row:last-child { border-bottom: none; }
+  .s-name { color: var(--mid); }
+  .s-amt { color: var(--dark); font-weight: 500; }
+  .sub-note {
+    font-size: 11px;
+    color: var(--mid);
+    padding: 5px 0 3px 16px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .grand-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 0 4px;
+    border-top: 1px solid var(--border-strong);
+    margin-top: 6px;
+  }
+  .grand-label { font-size: 14px; font-weight: 600; color: var(--dark); }
+  .grand-amt { font-size: 18px; font-weight: 600; color: var(--dark); }
+
+  .unalloc-msg {
+    font-size: 13px;
+    padding: 8px 0 0;
+    line-height: 1.5;
+  }
+  .unalloc-msg.ok { color: var(--green); }
+  .unalloc-msg.over { color: #A32D2D; }
+
+  /* Context notes */
+  .ctx-note {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--mid);
+    background: var(--light);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 14px 18px;
+    margin-bottom: 1.25rem;
+    border-left: 3px solid var(--green);
+  }
+  .ctx-note.alt { border-left-color: var(--yellow); }
+
+  /* CTA card */
+  .cta-card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1.75rem;
+    background: var(--dark);
+    color: var(--white);
+    margin-bottom: 1.25rem;
+  }
+  .cta-title { font-size: 17px; font-weight: 600; color: var(--white); margin-bottom: 6px; }
+  .cta-body { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; margin-bottom: 1.25rem; }
+  .cta-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cta-primary {
+    padding: 12px 22px;
+    background: var(--yellow);
+    color: var(--dark);
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background .15s;
+  }
+  .cta-primary:hover { background: #d4b42a; }
+  .cta-secondary {
+    padding: 12px 22px;
+    background: transparent;
+    color: rgba(255,255,255,0.8);
+    border: 0.5px solid rgba(255,255,255,0.3);
+    border-radius: var(--radius-md);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: border-color .15s, color .15s;
+  }
+  .cta-secondary:hover { border-color: rgba(255,255,255,0.6); color: white; }
+
+  /* Disclaimer */
+  .disclaimer {
+    font-size: 12px;
+    color: var(--mid);
+    line-height: 1.6;
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--border);
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Intro -->
+  <div class="intro">
+    <div class="intro-label">Project planning tool</div>
+    <h1>Understand your full project investment</h1>
+    <p>Most people think about their budget in terms of construction cost. But a complete project involves land, design, engineering, permits, financing, and contingency — each with its own set of decisions. This tool helps you see the whole picture before you commit to anything.</p>
+  </div>
+
+  <!-- Step 1: Project type -->
+  <div class="step">
+    <div class="step-label">Step 1 of 5</div>
+    <div class="step-title">What are you trying to do?</div>
+    <div class="step-hint">Select the option that best fits your project.</div>
+    <div class="card-grid" id="type-grid">
+      <div class="opt-card" onclick="selType(this,'new')">
+        <div class="oc-icon">🏠</div>
+        <div class="oc-label">Build new</div>
+        <div class="oc-sub">New home or structure from the ground up</div>
+      </div>
+      <div class="opt-card" onclick="selType(this,'addition')">
+        <div class="oc-icon">➕</div>
+        <div class="oc-label">Add on</div>
+        <div class="oc-sub">Expand your existing space</div>
+      </div>
+      <div class="opt-card" onclick="selType(this,'reno')">
+        <div class="oc-icon">🔧</div>
+        <div class="oc-label">Renovate</div>
+        <div class="oc-sub">Remodel or reconfigure existing space</div>
+      </div>
+      <div class="opt-card" onclick="selType(this,'commercial')">
+        <div class="oc-icon">🏢</div>
+        <div class="oc-label">Commercial</div>
+        <div class="oc-sub">Office, retail, or mixed-use</div>
+      </div>
+    </div>
+
+    <!-- Land question (conditional) -->
+    <div class="land-block" id="land-block">
+      <div class="land-q" id="land-q-text">Do you already own the land / site for this project?</div>
+      <div class="land-opts">
+        <div class="land-opt" onclick="selLand(this,'owned')">Yes, I own the site</div>
+        <div class="land-opt" onclick="selLand(this,'known')">No — I have a property in mind</div>
+        <div class="land-opt" onclick="selLand(this,'unknown')">No — still searching</div>
+      </div>
+      <div class="land-sub" id="land-sub">
+        <div class="land-sub-label">What is the anticipated purchase price?</div>
+        <div class="input-row">
+          <span class="input-pre" style="font-size:17px;">$</span>
+          <input class="budget-input sm" id="land-input" type="text" placeholder="Leave blank if unknown" oninput="fmtInput(this,'landBudget')"/>
+        </div>
+      </div>
+      <div class="land-note" id="land-note">Land values vary enormously by location, lot size, and site conditions. Before locking in a total budget, it's worth reviewing comparable sales in your target area — or talking with a local real estate professional. I'm happy to help you think through this during our intro conversation.</div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- Step 2: Total budget -->
+  <div class="step">
+    <div class="step-label">Step 2 of 5</div>
+    <div class="step-title">What is your total available budget?</div>
+    <div class="step-hint">Include everything you're willing to invest — land, design, construction, and a cushion for surprises. We'll show you how it might realistically be allocated.</div>
+    <div class="input-row">
+      <span class="input-pre">$</span>
+      <input class="budget-input" id="total-input" type="text" placeholder="600,000" oninput="fmtInput(this,'totalBudget')"/>
+    </div>
+    <div class="input-hint">Round to the nearest $25k — this is a planning tool, not a contract.</div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- Step 3: Quality -->
+  <div class="step">
+    <div class="step-label">Step 3 of 5</div>
+    <div class="step-title">What level of design and finish are you aiming for?</div>
+    <div class="step-hint">Be honest — there's no wrong answer. This shapes how much design effort your project requires, and therefore how fees are calculated.</div>
+    <div class="quality-list">
+      <div class="qi" onclick="selQ(this,.07)">
+        <div class="qi-dot"></div>
+        <div><div class="qi-label">Functional and no-fuss</div><div class="qi-desc">Practical layout, standard finishes. Gets the job done well.</div></div>
+      </div>
+      <div class="qi" onclick="selQ(this,.09)">
+        <div class="qi-dot"></div>
+        <div><div class="qi-label">Thoughtful on a budget</div><div class="qi-desc">Smart choices within constraints, with selective upgrades where they count.</div></div>
+      </div>
+      <div class="qi" onclick="selQ(this,.12)">
+        <div class="qi-dot"></div>
+        <div><div class="qi-label">Custom and well-crafted</div><div class="qi-desc">Fully custom design with mid-grade materials, tailored to how you live.</div></div>
+      </div>
+      <div class="qi" onclick="selQ(this,.15)">
+        <div class="qi-dot"></div>
+        <div><div class="qi-label">High-end, through and through</div><div class="qi-desc">Elevated materials, refined detailing, distinctly yours.</div></div>
+      </div>
+      <div class="qi" onclick="selQ(this,.18)">
+        <div class="qi-dot"></div>
+        <div><div class="qi-label">Award-winning and bespoke</div><div class="qi-desc">Luxury materials, maximum customization, publication-worthy.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- Step 4: Support level -->
+  <div class="step">
+    <div class="step-label">Step 4 of 5</div>
+    <div class="step-title">How much support do you need?</div>
+    <div class="step-hint">Choose the description that best fits your situation. There's no right answer — it depends on where you are in the process and how involved you want your architect to be.</div>
+    <div class="tier-grid">
+      <div class="tc" onclick="selTier(this,'drawings')">
+        <div class="tc-header"><span class="tc-name">I need drawings to build from</span><span class="tc-badge">Focused</span></div>
+        <div class="tc-desc">I have a clear vision and possibly a contractor already. I need an architect to develop that vision into a permitted, buildable drawing set.</div>
+        <div class="tc-pills"><span class="tc-pill">Design</span><span class="tc-pill">Development</span><span class="tc-pill">Construction documents</span></div>
+      </div>
+      <div class="tc" onclick="selTier(this,'guidance')">
+        <div class="tc-header"><span class="tc-name">I need help finding the right direction</span><span class="tc-badge">Guided</span></div>
+        <div class="tc-desc">I have goals and a budget but I'm not sure what's realistic. I want help thinking through possibilities before committing to a design path.</div>
+        <div class="tc-pills"><span class="tc-pill">Pre-design</span><span class="tc-pill">Design</span><span class="tc-pill">Development</span><span class="tc-pill">Construction documents</span></div>
+      </div>
+      <div class="tc" onclick="selTier(this,'contractor')">
+        <div class="tc-header"><span class="tc-name">I need help selecting and managing a contractor</span><span class="tc-badge">Extended</span></div>
+        <div class="tc-desc">I want support through design and into construction — finding the right contractor and making sure what gets built matches what was designed.</div>
+        <div class="tc-pills"><span class="tc-pill">Design</span><span class="tc-pill">Development</span><span class="tc-pill">Construction documents</span><span class="tc-pill">Contractor selection</span><span class="tc-pill">Construction oversight</span></div>
+      </div>
+      <div class="tc" onclick="selTier(this,'full')">
+        <div class="tc-header"><span class="tc-name">I want my architect with me start to finish</span><span class="tc-badge">Full service</span></div>
+        <div class="tc-desc">A significant investment deserves a trusted guide through every decision — from the first sketch to the day I get the keys.</div>
+        <div class="tc-pills"><span class="tc-pill">Pre-design</span><span class="tc-pill">Design</span><span class="tc-pill">Development</span><span class="tc-pill">Construction documents</span><span class="tc-pill">Contractor selection</span><span class="tc-pill">Construction oversight</span><span class="tc-pill">Closeout</span></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- Step 5: Known costs -->
+  <div class="step">
+    <div class="step-label">Step 5 of 5</div>
+    <div class="step-title">Have you already budgeted for any of these?</div>
+    <div class="step-hint">If you've set aside money for specific items, enter those amounts. Leave blank and we'll use typical planning estimates.</div>
+    <div class="known-grid">
+      <div class="known-item">
+        <div class="known-label">Furniture, fixtures &amp; equipment (FF&amp;E)</div>
+        <div class="input-row">
+          <span class="input-pre" style="font-size:16px;">$</span>
+          <input class="budget-input sm" id="ffe-input" type="text" placeholder="Leave blank to estimate" oninput="fmtInput(this,'ffeBudget')"/>
+        </div>
+      </div>
+      <div class="known-item">
+        <div class="known-label">Financing costs (origination, interest reserve)</div>
+        <div class="input-row">
+          <span class="input-pre" style="font-size:16px;">$</span>
+          <input class="budget-input sm" id="fin-input" type="text" placeholder="Leave blank to estimate" oninput="fmtInput(this,'finBudget')"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Go button -->
+  <button class="go-btn" onclick="calculate()">Show me my complete project budget →</button>
+
+  <!-- Results -->
+  <div id="results">
+
+    <div class="res-card">
+      <div class="res-eyebrow">How your budget breaks down</div>
+      <div class="bar-stack" id="bar-stack"></div>
+      <div class="bar-legend" id="bar-legend"></div>
+      <div id="buckets"></div>
+      <div class="grand-row">
+        <span class="grand-label">Total estimated costs</span>
+        <span class="grand-amt" id="grand-total"></span>
+      </div>
+      <div class="unalloc-msg" id="unalloc-msg"></div>
+    </div>
+
+    <div class="ctx-note" id="ctx-1"></div>
+    <div class="ctx-note alt" id="ctx-2"></div>
+
+    <div class="cta-card">
+      <div class="cta-title">Ready to talk through your project?</div>
+      <div class="cta-body">This is a planning tool, not a quote — and every project has its own story. The intro call is free: a real conversation about your vision, your budget, and what's genuinely possible.</div>
+      <div class="cta-btns">
+        <a class="cta-primary" href="https://www.aaronmaret.com/questionnaire">Start the conversation →</a>
+        <a class="cta-secondary" href="https://www.aaronmaret.com/process">How I work</a>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      All figures are planning estimates based on typical project assumptions and regional averages. Actual costs depend on site conditions, local market pricing, regulatory requirements, and project-specific decisions. This tool is intended to help you enter the design process with realistic expectations — not to substitute for professional cost estimating or financial advice.
+    </div>
+
+  </div><!-- /results -->
+
+</div><!-- /page -->
+
+<script>
+var D = {
+  type: null,
+  landStatus: null,
+  totalBudget: 0,
+  landBudget: 0,
+  qualityRate: null,
+  tier: null,
+  ffeBudget: 0,
+  finBudget: 0
+};
+
+var TIERS = {
+  drawings:   { mult: .75, phases: ['Schematic design', 'Design development', 'Construction documents'] },
+  guidance:   { mult: .85, phases: ['Pre-design & feasibility', 'Schematic design', 'Design development', 'Construction documents'] },
+  contractor: { mult: .92, phases: ['Schematic design', 'Design development', 'Construction documents', 'Contractor selection', 'Construction administration'] },
+  full:       { mult: 1.0, phases: ['Pre-design & feasibility', 'Schematic design', 'Design development', 'Construction documents', 'Contractor selection', 'Construction administration', 'Closeout & post-occupancy'] }
+};
+
+var COLORS = {
+  land:    '#B4B2A9',
+  const:   '#7BBF68',
+  design:  '#3A6B2A',
+  soft:    '#AFA9EC',
+  finance: '#85B7EB',
+  ffe:     '#F0997B',
+  conting: '#FAC775'
+};
+
+function selType(el, type) {
+  document.querySelectorAll('#type-grid .opt-card').forEach(function(c){ c.classList.remove('sel'); });
+  el.classList.add('sel');
+  D.type = type;
+  var lb = document.getElementById('land-block');
+  var lq = document.getElementById('land-q-text');
+  if (type === 'new' || type === 'commercial') {
+    lb.style.display = 'block';
+    lq.textContent = 'Do you already own the land / site for this project?';
+  } else if (type === 'addition') {
+    lb.style.display = 'block';
+    lq.textContent = 'Do you already own the property where the addition will be built?';
+  } else {
+    lb.style.display = 'none';
+    D.landStatus = null; D.landBudget = 0;
+  }
+}
+
+function selLand(el, status) {
+  document.querySelectorAll('.land-opt').forEach(function(c){ c.classList.remove('sel'); });
+  el.classList.add('sel');
+  D.landStatus = status;
+  var sub  = document.getElementById('land-sub');
+  var note = document.getElementById('land-note');
+  if (status === 'known') {
+    sub.style.display  = 'block';
+    note.style.display = 'none';
+  } else if (status === 'unknown') {
+    sub.style.display  = 'none';
+    note.style.display = 'block';
+    D.landBudget = 0;
+  } else {
+    sub.style.display  = 'none';
+    note.style.display = 'none';
+    D.landBudget = 0;
+  }
+}
+
+function fmtInput(el, key) {
+  var raw = el.value.replace(/[^0-9]/g, '');
+  D[key] = parseInt(raw) || 0;
+  if (raw) el.value = parseInt(raw).toLocaleString();
+  else el.value = '';
+}
+
+function selQ(el, rate) {
+  document.querySelectorAll('.qi').forEach(function(c){ c.classList.remove('sel'); });
+  el.classList.add('sel');
+  D.qualityRate = rate;
+}
+
+function selTier(el, key) {
+  document.querySelectorAll('.tc').forEach(function(c){ c.classList.remove('sel'); });
+  el.classList.add('sel');
+  D.tier = key;
+}
+
+function fmt(n)  { return '$' + Math.round(n).toLocaleString(); }
+function fpct(n) { return Math.round(n * 100) + '%'; }
+
+function makeBucket(color, label, amt, totalBudget, rows, note, highlight) {
+  var pct = totalBudget > 0 ? amt / totalBudget : 0;
+  var uid = 'b-' + label.replace(/\W+/g, '_');
+  var hl  = highlight ? ' hl' : '';
+  var h   = '<div class="bucket">';
+  h += '<div class="bucket-hdr" onclick="tog(\'' + uid + '\')">';
+  h += '<span class="b-name' + hl + '">' + label + '</span>';
+  h += '<div class="b-right">';
+  h += '<span class="b-total">' + fmt(amt) + '</span>';
+  h += '<span class="b-pct">' + fpct(pct) + '</span>';
+  h += '<span class="b-chev" id="chev-' + uid + '">&#9656;</span>';
+  h += '</div></div>';
+  h += '<div class="sub-rows" id="' + uid + '">';
+  rows.forEach(function(r) {
+    h += '<div class="sub-row"><span class="s-name">' + r.n + '</span><span class="s-amt">' + fmt(r.a) + '</span></div>';
+  });
+  if (note) h += '<div class="sub-note">' + note + '</div>';
+  h += '</div></div>';
+  return h;
+}
+
+function tog(uid) {
+  var el = document.getElementById(uid);
+  var ch = document.getElementById('chev-' + uid);
+  var open = el.classList.contains('open');
+  el.classList.toggle('open', !open);
+  ch.classList.toggle('open', !open);
+}
+
+function calculate() {
+  if (!D.totalBudget || D.totalBudget < 10000) { alert('Please enter your total available budget.'); return; }
+  if (!D.qualityRate) { alert('Please select a design quality level.'); return; }
+  if (!D.tier)        { alert('Please select a support level.'); return; }
+
+  var T = D.totalBudget;
+  var needsLand = (D.type === 'new' || D.type === 'commercial' || D.type === 'addition');
+  var landAmt   = (needsLand && D.landStatus === 'known') ? D.landBudget : 0;
+  var remaining = T - landAmt;
+
+  var contingPct = (D.type === 'reno') ? 0.15 : 0.10;
+  var permitPct  = 0.015;
+  var softPct    = 0.04;
+  var finPct     = 0.025;
+  var ffePct     = (D.type === 'commercial') ? 0.04 : 0.02;
+
+  var contingAmt = remaining * contingPct;
+  var permitAmt  = remaining * permitPct;
+  var softAmt    = remaining * softPct;
+  var finAmt     = D.finBudget  > 0 ? D.finBudget  : remaining * finPct;
+  var ffeAmt     = D.ffeBudget  > 0 ? D.ffeBudget  : remaining * ffePct;
+
+  var tierData   = TIERS[D.tier];
+  var designBase = remaining * D.qualityRate * tierData.mult;
+
+  var archAmt    = designBase * 0.55;
+  var structAmt  = designBase * 0.12;
+  var mepAmt     = designBase * 0.18;
+  var intAmt     = (D.qualityRate >= 0.12) ? designBase * 0.10 : 0;
+  var landscAmt  = (D.type === 'new' || D.type === 'commercial') ? designBase * 0.05 : 0;
+  var otherDesign = Math.max(0, designBase - archAmt - structAmt - mepAmt - intAmt - landscAmt);
+
+  var constAmt = remaining - designBase - permitAmt - softAmt - finAmt - ffeAmt - contingAmt;
+  if (constAmt < 0) constAmt = 0;
+
+  var totalEst = landAmt + constAmt + designBase + permitAmt + softAmt + finAmt + ffeAmt + contingAmt;
+
+  /* ── Bar chart ── */
+  var segments = [];
+  if (landAmt > 0)  segments.push({ label: 'Land',         amt: landAmt,    color: COLORS.land });
+  segments.push(     { label: 'Construction', amt: constAmt,   color: COLORS.const });
+  segments.push(     { label: 'Design fees',  amt: designBase, color: COLORS.design });
+  segments.push(     { label: 'Soft costs',   amt: permitAmt + softAmt, color: COLORS.soft });
+  segments.push(     { label: 'Financing',    amt: finAmt,     color: COLORS.finance });
+  segments.push(     { label: 'FF&E',         amt: ffeAmt,     color: COLORS.ffe });
+  segments.push(     { label: 'Contingency',  amt: contingAmt, color: COLORS.conting });
+
+  var bs = document.getElementById('bar-stack');
+  var bl = document.getElementById('bar-legend');
+  bs.innerHTML = ''; bl.innerHTML = '';
+  segments.forEach(function(s) {
+    if (s.amt <= 0) return;
+    var w = Math.max(1, Math.round(s.amt / totalEst * 100));
+    var seg = document.createElement('div');
+    seg.className = 'bar-seg';
+    seg.style.width = w + '%';
+    seg.style.background = s.color;
+    bs.appendChild(seg);
+    bl.innerHTML += '<span class="bl-item"><span class="bl-dot" style="background:' + s.color + '"></span>' + s.label + '</span>';
+  });
+
+  /* ── Buckets ── */
+  var bcEl = document.getElementById('buckets');
+  bcEl.innerHTML = '';
+
+  if (landAmt > 0) {
+    bcEl.innerHTML += makeBucket(COLORS.land, 'Land / site acquisition', landAmt, T,
+      [{ n: 'Purchase price', a: landAmt }],
+      D.landStatus === 'unknown' ? 'Land cost is not yet known and is not included in this estimate. Research comparable sales in your target area before finalizing your budget.' : null,
+      false);
+  }
+
+  bcEl.innerHTML += makeBucket(COLORS.const, 'Construction', constAmt, T,
+    [{ n: 'Hard construction costs', a: constAmt }],
+    'Includes all labor, materials, and contractor overhead. Based on your remaining budget after other allocations.',
+    false);
+
+  var designRows = [
+    { n: 'Architecture (' + tierData.phases.length + ' phases)', a: archAmt },
+    { n: 'Structural engineering', a: structAmt },
+    { n: 'MEP engineering (mechanical, electrical, plumbing)', a: mepAmt }
+  ];
+  if (intAmt > 0)    designRows.push({ n: 'Interior design', a: intAmt });
+  if (landscAmt > 0) designRows.push({ n: 'Landscape / civil design', a: landscAmt });
+  if (otherDesign > 0) designRows.push({ n: 'Survey, geotech & other consultants', a: otherDesign });
+
+  bcEl.innerHTML += makeBucket(COLORS.design, 'Design fees', designBase, T,
+    designRows,
+    'Design fees cover all professionals involved in translating your vision into a buildable project. Engineering and specialty consultants are hired and coordinated by the architect — you pay them, but navigating that team is part of what you\'re hiring me to do.',
+    true);
+
+  bcEl.innerHTML += makeBucket(COLORS.soft, 'Permitting & soft costs', permitAmt + softAmt, T,
+    [{ n: 'Permitting & municipal fees', a: permitAmt }, { n: 'Inspections, testing & approvals', a: softAmt }],
+    'Permit fees vary widely by municipality and project scope. This is a rough estimate — actual costs should be confirmed with the local building department early in the process.',
+    false);
+
+  bcEl.innerHTML += makeBucket(COLORS.finance, 'Financing costs', finAmt, T,
+    [{ n: 'Loan origination & closing costs', a: finAmt * 0.4 }, { n: 'Construction loan interest reserve', a: finAmt * 0.6 }],
+    D.finBudget > 0 ? 'Based on your input.' : 'Estimated at ~2.5% of remaining budget. If you\'re paying cash, this allocation can shift toward construction or contingency.',
+    false);
+
+  bcEl.innerHTML += makeBucket(COLORS.ffe, 'Furniture, fixtures & equipment', ffeAmt, T,
+    [{ n: 'FF&E budget', a: ffeAmt }],
+    D.ffeBudget > 0 ? 'Based on your input.' : 'Estimated at ' + fpct(ffePct) + ' of remaining budget. This is often underestimated — worth planning early, especially for commercial projects.',
+    false);
+
+  bcEl.innerHTML += makeBucket(COLORS.conting, 'Contingency', contingAmt, T,
+    [{ n: D.type === 'reno' ? 'Renovation contingency (15%)' : 'Construction contingency (10%)', a: contingAmt }],
+    D.type === 'reno'
+      ? 'Renovation projects carry higher uncertainty — 15% is the recommended minimum. Once walls open, surprises are common and expensive.'
+      : '10% is standard for new construction. Do not plan to spend this; plan to need it.',
+    false);
+
+  /* ── Grand total & unalloc ── */
+  document.getElementById('grand-total').textContent = fmt(totalEst);
+  var diff = T - totalEst;
+  var um = document.getElementById('unalloc-msg');
+  if (Math.abs(diff) < 500) {
+    um.textContent = 'Your budget is fully allocated.';
+    um.className = 'unalloc-msg ok';
+  } else if (diff > 0) {
+    um.textContent = fmt(diff) + ' unallocated — consider adding to contingency or construction quality.';
+    um.className = 'unalloc-msg ok';
+  } else {
+    um.textContent = 'Estimated costs exceed your budget by ' + fmt(Math.abs(diff)) + '. Consider adjusting your quality level, support scope, or total investment.';
+    um.className = 'unalloc-msg over';
+  }
+
+  /* ── Context notes ── */
+  var c1 = '';
+  if (needsLand && D.landStatus === 'unknown') {
+    c1 += 'Land cost is not included in this estimate because it hasn\'t been determined yet. Before finalizing your budget, research what land in your target area actually costs — this is often the largest and least predictable variable in a new construction budget. ';
+  }
+  c1 += 'Design fees cover every professional involved in the project — architecture, structural, MEP, and any specialty consultants. These are coordinated under a single design framework, which is a significant part of the service you\'re hiring an architect to provide.';
+  document.getElementById('ctx-1').textContent = c1;
+  document.getElementById('ctx-2').textContent = 'Every number here is a planning assumption. Real costs depend on your site, local market conditions, contractor bids, and the specific decisions you make along the way. The goal of this tool is to help you enter the process with realistic expectations — not to substitute for professional cost estimating.';
+
+  /* ── Show results ── */
+  var res = document.getElementById('results');
+  res.style.display = 'block';
+  setTimeout(function(){ res.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+}
+</script>
+</body>
+</html>
